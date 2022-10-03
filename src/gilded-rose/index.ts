@@ -77,7 +77,7 @@ function agedBrieQuality(item) {
   }
 };
 function backstagePassesQuality(item) {
-  const { sell_in } = item;
+  // const { sellIn } = item;
   // decrease the sell_in no matter what
   decreaseSellIn(item);
   // then check if the quality is less than 50
@@ -110,19 +110,6 @@ function standardItemUpdates(item) {
 }
 
 function updateItem(item) {
-  // switch(item.name) {
-  //   case 'Aged Brie': 
-  //     agedBrieQuality(item);
-  //     break;
-  //   case 'Backstage passes to a TAFKAL80ETC concert':
-  //     backstagePassesQuality(item);
-  //     break;
-  //   case 'Sulfuras, Hand of Ragnaros':
-  //     break;
-  //   default: 
-  //     standardItemUpdates(item);
-  // }
-  //   return item;
 
   // this if statement checks for a standard item, then decreases the sell_in & quality accordingly
   if (isStandardItem(item)) {
@@ -139,44 +126,21 @@ function updateItem(item) {
   isAnythingButSulfuras(item)
   
   if (isSellInBelowZero(item)) {
-    
-    if (item.name != 'Aged Brie') {
-      if (item.name != 'Backstage passes to a TAFKAL80ETC concert') {
-        if (isQualityStillMoreThanZero(item)) {
-          if (item.name != 'Sulfuras, Hand of Ragnaros') {
-            decreaseQuality(item, 1);
-
-          }
-        }
-      } else {
+    if (isStandardItem(item)) {
+      standardItemUpdates(item)
+      if (isQualityStillMoreThanZero(item)) {
+        isAnythingButSulfuras(item)
+      }
+      else if (isBackstagePasses(item)){
         zeroQuality(item)
       }
     } 
-    else {
+    if (isAgedBrie(item)) {
       if (isQualityStillLessThanFifty(item)) {
         increaseQuality(item, 1);
       }
     }
   }
-  // if (isSellInBelowZero(item)) {
-  //   if (item.name != 'Aged Brie') {
-  //     if (item.name != 'Backstage passes to a TAFKAL80ETC concert') {
-  //       if (isQualityStillMoreThanZero(item)) {
-  //         if (item.name != 'Sulfuras, Hand of Ragnaros') {
-  //           decreaseQuality(item, 1);
-
-  //         }
-  //       }
-  //     } else {
-  //       zeroQuality(item)
-  //     }
-  //   } 
-  //   else {
-  //     if (isQualityStillLessThanFifty(item)) {
-  //       increaseQuality(item, 1);
-  //     }
-  //   }
-  // }
   return item;
 }
 
