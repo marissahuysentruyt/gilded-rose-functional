@@ -12,61 +12,144 @@ export class Item {
     this.quality = quality;
   }
 }
+function isStandardItem(item) {
+  return (item.name != 'Aged Brie' &&
+    item.name != 'Backstage passes to a TAFKAL80ETC concert' &&
+    item.name != 'Sulfuras, Hand of Ragnaros')
+};
 
-export class GildedRose {
-  items: Array<Item>;
-
-  constructor(items = [] as Array<Item>) {
-    this.items = items;
+function isAgedBrie(item) {
+  return (item.name === 'Aged Brie')
+}
+function isBackstagePasses(item) {
+  return (item.name === 'Backstage passes to a TAFKAL80ETC concert')
+}
+function isSulfuras(item) {
+  return (item.name === 'Sulfuras, Hand of Ragnaros')
+}
+function isAnythingButSulfuras(item) {
+  if (item.name != 'Sulfuras, Hand of Ragnaros') {
+    return item.sellIn = item.sellIn - 1;
+  }
+}
+function isQualityStillLessThanFifty(item) {
+  return (item.quality < 50)
+}
+function isQualityStillMoreThanZero(item) {
+  return (item.quality > 0)
+}
+function isSellInBelowZero(item) {
+  return (item.sellIn < 0) 
+}
+function decreaseQuality(item, amount = 1) {
+  item.quality -= amount;
+}
+function decreaseQualityTwiceAsFast(item, amount = 2) {
+  decreaseQuality(item, 2)
+}
+function increaseQuality(item, amount = 1) {
+  item.quality += amount;
+}
+function decreaseSellIn(item, amount = 1) {
+  item.sellIn -= 1;
+}
+function zeroQuality (item) {
+  item.quality = item.quality - item.quality
   }
 
-  updateQuality() {
-    for (let i = 0; i < this.items.length; i++) {
-      if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-        if (this.items[i].quality > 0) {
-          if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-            this.items[i].quality = this.items[i].quality - 1
-          }
-        }
-      } else {
-        if (this.items[i].quality < 50) {
-          this.items[i].quality = this.items[i].quality + 1
-          if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-            if (this.items[i].sellIn < 11) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1
-              }
-            }
-            if (this.items[i].sellIn < 6) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1
-              }
-            }
-          }
-        }
+function agedBrieQuality(item) {
+  const { quality } = item;
+  decreaseSellIn(item, 1);
+
+  // quality has to be between 0-50
+  if (quality >= 0 && quality < 50) {
+    switch (true) {
+      // if the sell_in is negative, increase the brie quality by 2
+      case item.sellIn <= 0:
+        increaseQuality(item, 2);
+        decreaseSellIn(item, 1);
+        break;
+      // if the quality is between 0-50, increase the brie quality by 1
+      default: 
+        increaseQuality(item, 1);
+        break;
+    }
+  }
+};
+function backstagePassesQuality(item) {
+  // const { sellIn } = item;
+  // decrease the sell_in no matter what
+  decreaseSellIn(item);
+  // then check if the quality is less than 50
+  if (isQualityStillLessThanFifty(item)) {
+    if (item.sellIn < 11) {
+      // if (isQualityStillLessThanFifty(item)) {
+        increaseQuality(item, 1)
       }
-      if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-        this.items[i].sellIn = this.items[i].sellIn - 1;
-      }
-      if (this.items[i].sellIn < 0) {
-        if (this.items[i].name != 'Aged Brie') {
-          if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-            if (this.items[i].quality > 0) {
-              if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                this.items[i].quality = this.items[i].quality - 1
-              }
-            }
-          } else {
-            this.items[i].quality = this.items[i].quality - this.items[i].quality
-          }
-        } else {
-          if (this.items[i].quality < 50) {
-            this.items[i].quality = this.items[i].quality + 1
-          }
-        }
+    
+    if (item.sellIn < 6) {
+    // then check if the quality is still less than 50
+      if (isQualityStillLessThanFifty(item)) {
+        increaseQuality(item, 1)
       }
     }
-
-    return this.items;
+    if (item.sellIn < 0) {
+      zeroQuality(item)
+    }
   }
+}
+function standardItemUpdates(item) {
+  // then check that the quality between 0-50, and decrease the quality by 1
+  if (item.quality > 0 && item.quality < 50) {
+    decreaseQuality(item, 1);
+    // if the sell_in becomes negative, decrease quality again by 1
+    if(item.sellIn < 0) {
+      decreaseQuality(item, 1);
+    }
+  }
+}
+
+function updateItem(item) {
+
+  // this if statement checks for a standard item, then decreases the sell_in & quality accordingly
+  if (isStandardItem(item)) {
+    standardItemUpdates(item);
+  } else {
+    if (isQualityStillLessThanFifty(item)) {
+      increaseQuality(item, 1)
+      if (isBackstagePasses(item)) {
+        backstagePassesQuality(item)
+      }
+    }
+  }
+  // this decreases the sell_in of every item EXCEPT sulfuras
+  isAnythingButSulfuras(item)
+  
+  if (isSellInBelowZero(item)) {
+    if (isStandardItem(item)) {
+      standardItemUpdates(item)
+      if (isQualityStillMoreThanZero(item)) {
+        isAnythingButSulfuras(item)
+      }
+      else if (isBackstagePasses(item)){
+        zeroQuality(item)
+      }
+    } 
+    if (isAgedBrie(item)) {
+      if (isQualityStillLessThanFifty(item)) {
+        increaseQuality(item, 1);
+      }
+    }
+  }
+  return item;
+}
+
+
+// accumulative value of item?
+// items.reduce((item) => item decrease )
+// items composition that handles conditionals
+// cond in Ramda send items 
+
+export function updateQuality2(items) {
+  return items.map(updateItem);
 }

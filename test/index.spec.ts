@@ -1,69 +1,107 @@
 /* eslint-disable */
 // @ts-nocheck
 
-import { allItems, getItem } from './fixture';
-import { createGildedRose, doTimes, run, updateItems } from './utility';
+import { updateQuality2 } from '../src/gilded-rose';
+import { createItem, getItem } from './fixture';
+import { doTimes, updateItems } from './utility';
 
 describe('updateQuality', function() {
-  const { items, updateQuality } = createGildedRose(allItems);
 
   describe('Standard item', () => {
-    it('returns a positive or zero quality value.', () => {
-      const updatedItems = doTimes(7, () => updateItems(updateQuality, items));
-      const vest = getItem('elixir', updatedItems);
+    it('returns a quality of 0 or greater, never negative', () => {
+      const items = [createItem('elixir', { sellIn: 2, quality: 2 })];
+      const updatedItems = doTimes(3, () => updateQuality2(items));
+      const elixir = getItem('elixir', updatedItems);
 
-      expect(vest.quality).toEqual(0);
+      expect(elixir.quality).toEqual(0);
     });
 
-    it('has a maximum quality value of 50.', () => {
-      const updatedItems = doTimes(20, () => updateItems(updateQuality, items));
+    it('does not exceed a maximum quality of 50.', () => {
+      const items = [createItem('aged brie', { sellIn: 10, quality: 49 })];
+      const updatedItems = doTimes(2, () => updateQuality2(items));
       const agedBrie = getItem('aged brie', updatedItems);
 
       expect(agedBrie.quality).toEqual(50);
     });
   });
 
-  // describe('when the sell_in is below 0', () => {
-  //   it('reduces the quality by 2', () => {
-  //   });
-  // });
+  describe('Aged Brie', () => {
+    it('increases quality until its "Sell in" date', () => {
+      const items = [createItem('aged brie', { sellIn: 2, quality: 0 })];
+      const updatedItems = doTimes(2, () => updateQuality2(items));
+      const agedBrie = getItem('aged brie', updatedItems);
 
-  // describe('when updating Aged Brie', () => {
-  //   it('increases the quality by 1', () => {
-  //   });
-  // });
+      expect(agedBrie.quality).toEqual(2);
+    });
 
-  // describe('when the sell_in is below 0', () => {
-  //   it('decreases the quality by 2', () => {
-  //   });
-  // });
+    it('increases quality twice as fast after its "Sell in" date', () => {
+      const items = [createItem('aged brie', { sellIn: 2, quality: 0 })];
+      const updatedItems = doTimes(3, () => updateQuality2(items));
+      const agedBrie = getItem('aged brie', updatedItems);
 
-  // describe('when updating Sulfuras', () => {
-  //   it('quality remains at 80', () => {
-  //   });
-  // });
+      expect(agedBrie.quality).toEqual(4);
+    });
+  });
 
-  // describe('when updating a backstage pass', () => {
-  //   describe('when the sell_in is larger than 10', () => {
-  //     it('increases the quality by 1', () => {
-  //     });
-  //   });
-  //   describe('when the sell_in is 10 or less', () => {
-  //     it('increases the quality by 2', () => {
-  //     });
-  //   });
-  //   describe('when the sell_in is 5 or less', () => {
-  //     it('increases the quality by 3', () => {
-  //     });
-  //   });
-  //   describe('when the sell_in is 0 or less', () => {
-  //     it('reduces the quality to 0', () => {
-  //     });
-  //   });
-  // });
+  describe('Sulfurus', () => {
+    it('does not decrease in quality', () => {
+      const items = [createItem('sulfuras', { sellIn: 0, quality: 80 })];
+      const updatedItems = doTimes(2, () => updateQuality2(items));
+      const sulfurus = getItem('sulfuras', updatedItems);
 
-  // describe('when updating a Conjured item', () => {
-  //   it('always reduces quality by 2', () => {
-  //   });
-  // });
+      expect(sulfurus.quality).toEqual(80);
+    });
+
+    it('does not have a "Sell in" date', () => {
+      const items = [createItem('sulfuras', { sellIn: 0, quality: 80 })];
+      const updatedItems = doTimes(2, () => updateQuality2(items));
+      const sulfurus = getItem('sulfuras', updatedItems);
+
+      expect(sulfurus.sellIn).toEqual(0);
+    });
+  });
+
+  describe('Backstage passes', () => {
+    it('increases quality by 1 with 11 or more days left', () => {
+      const items = [createItem('backstage passes', { sellIn: 12, quality: 10 })];
+      const updatedItems = doTimes(1, () => updateQuality2(items));
+      const backstagePasses = getItem('backstage passes', updatedItems);
+      
+      expect(backstagePasses.quality).toEqual(11);
+    });
+
+    it('increases quality by 2 with 10 or less days left', () => {
+      const items = [createItem('backstage passes', { sellIn: 10, quality: 10 })];
+      const updatedItems = doTimes(1, () => updateQuality2(items));
+      const backstagePasses = getItem('backstage passes', updatedItems);
+      
+      expect(backstagePasses.quality).toEqual(12);
+    });
+
+    it('increases quality by 3 with 5 or less days left', () => {
+      const items = [createItem('backstage passes', { sellIn: 5, quality: 10 })];
+      const updatedItems = doTimes(1, () => updateQuality2(items));
+      const backstagePasses = getItem('backstage passes', updatedItems);
+      
+      expect(backstagePasses.quality).toEqual(13);
+    });
+
+   it('decreases quality to 0 after the day of the concert', () => {
+      const items = [createItem('backstage passes', { sellIn: 0, quality: 10 })];
+      const updatedItems = doTimes(1, () => updateQuality2(items));
+      const backstagePasses = getItem('backstage passes', updatedItems);
+      
+      expect(backstagePasses.quality).toEqual(0);
+    });
+  });
+
+  describe('Conjured item', () => {
+    it.todo('decrease quality twice as fast', () => {
+      const items = [createItem('conjured', { sellIn: 10, quality: 20 })];
+      const updatedItems = doTimes(2, () => updateQuality2(items));
+      const conjured = getItem('conjured', updatedItems);
+
+      expect(conjured.quality).toEqual(16);
+    });
+  });
 });
